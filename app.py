@@ -7,12 +7,13 @@ st.set_page_config(page_title="Stress Detection", layout="centered")
 
 # Title
 st.title("Student Stress Detection System")
+st.write("Please share your daily routine and feelings. I will help you understand your current stress level.")
 
 # Load model
 try:
     with open("model.pkl", "rb") as f:
         model = pickle.load(f)
-    st.success("Model Loaded ✅")
+    st.success("System is ready to help you! ✅")
 except Exception as e:
     st.error("Error: Model file not found. Please ensure 'model.pkl' is in the folder.")
     st.stop()
@@ -70,12 +71,7 @@ if st.button("Predict Stress"):
             st.error(f"Stress Level: High ({stress_score}%)")
             st.write("Please take a break and seek support.")
 
-        # Display Model Result
-        if prediction[0] == 1:
-            st.error("Model Prediction: Student is Stressed")
-        else:
-            st.success("Model Prediction: Student is Not Stressed")
-
+       
         # 5. Personalized Suggestions
         st.subheader("Personalized Suggestions")
 
