@@ -21,7 +21,6 @@ except Exception as e:
 # Input Section
 st.header("Enter Student Details")
 
-# All inputs in one single vertical list
 study = st.slider("Study Hours", 0, 15, 5)
 sleep = st.slider("Sleep Hours", 0, 15, 7)
 social = st.slider("Social Media Usage", 0, 10, 2)
@@ -34,31 +33,36 @@ financial = st.slider("Financial Stress (1-5)", 1, 5, 2)
 examfear = st.slider("Exam Anxiety (1-5)", 1, 5, 2)
 timemanagement = st.slider("Time Management (1-5)", 1, 5, 3)
 
-# Logic for "Correct Data" Check
 total_hours = study + sleep + social + activity + extra
 
-# Button
 if st.button("Predict Stress"):
-    # 1. Check if data is realistic
     if total_hours > 24:
-        st.warning(f"⚠️ **Data Alert:** You have logged {total_hours} hours of activity. A day only has 24 hours. Please adjust your sliders for an accurate prediction.")
+        st.warning(f"⚠️ **Data Alert:** You have logged {total_hours} hours. A day only has 24 hours.")
     else:
-        # 2. Prepare data for model
+        # 1. Prepare data for model
         data_input = np.array([[study, sleep, social, pressure, family,
                                 activity, screen, extra, financial,
                                 examfear, timemanagement]])
 
-        # 3. Model Prediction
-        prediction = model.predict(data_input)
+        # 2. Model Prediction (Background)
+        prediction_val = model.predict(data_input)[0]
         
-        # 4. Stress Score Calculation (Logic based on inputs)
-        # Hum stress factors ko add kar rahe hain aur positive factors ko minus
+        # 3. Stress Score Calculation (Logic based on inputs)
         raw_score = (pressure * 10) + (examfear * 10) + (financial * 10) - (sleep * 5) - (family * 5)
-        # Score ko 0-100 ki range mein laane ke liye normalization
         stress_score = max(0, min(100, raw_score + 40)) 
+
+        # 4. FIX: Synchronizing Model with Score (Hybrid Logic)
+        # Agar stress_score 50% se zyada hai, toh AI status "Stressed" hi dikhayega
+        if stress_score > 50 or prediction_val == 1:
+            status = "Stressed"
+        else:
+            status = "Not Stressed"
 
         st.markdown("---")
         st.subheader("Analysis Results")
+
+        # DISPLAY AI STATUS (Ab ye score ke saath match karega)
+        st.info(f"🤖 **AI Prediction:** Student is **{status}**")
 
         # Display Stress Level based on Score
         if stress_score <= 30:
@@ -71,27 +75,11 @@ if st.button("Predict Stress"):
             st.error(f"Stress Level: High ({stress_score}%)")
             st.write("Please take a break and seek support.")
 
-       
         # 5. Personalized Suggestions
         st.subheader("Personalized Suggestions")
-
-        if sleep < 6:
-            st.write("• Maintain a proper sleep schedule (at least 7-8 hours).")
-        if study > 8:
-            st.write("• Take regular breaks during study time.")
-        if social > 5:
-            st.write("• Limit your social media usage to save mental energy.")
-        if pressure > 3:
-            st.write("• Break your academic tasks into smaller, manageable steps.")
-        if family < 3:
-            st.write("• Try to connect with friends or mentors for emotional support.")
-        if activity < 2:
-            st.write("• Add at least 20 mins of physical activity to your daily routine.")
-        if screen > 7:
-            st.write("• High screen time detected. Use blue light filters and take eye breaks.")
-        if financial > 3:
-            st.write("• Don't stress alone; discuss financial concerns with a trusted person.")
-        if examfear > 3:
-            st.write("• Practice mock tests to build confidence and reduce anxiety.")
-        if timemanagement < 3:
-            st.write("• Follow a structured daily schedule.")
+        if sleep < 6: st.write("• Maintain a proper sleep schedule (at least 7-8 hours).")
+        if study > 8: st.write("• Take regular breaks during study time.")
+        if pressure > 3: st.write("• Break your academic tasks into smaller steps.")
+        if financial > 3: st.write("• Discuss financial concerns with a trusted person.")
+        if examfear > 3: st.write("• Practice mock tests to build confidence.")
+        if timemanagement < 3: st.write("• Follow a structured daily schedule.")
